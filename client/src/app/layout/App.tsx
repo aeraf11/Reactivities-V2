@@ -1,29 +1,18 @@
-import {Box, Container, CssBaseline } from "@mui/material";
-import axios from "axios";
-import { useEffect, useState } from "react"
+import {Box, Container, CssBaseline, Typography } from "@mui/material";
+import { useState } from "react"
 import NavBar from "./NavBar";
 import ActivityDashboard from "../../features/activities/dashboard/ActivityDashboard";
+import { useActivities } from "../../lib/hooks/useActivities";
 
 function App() {
 
-  const [activities, setActivities] = useState<Activity[]>([]);
   const [selectedActivity, setSelectedActivity] = useState<Activity | undefined>(undefined);
   const [editMode, setEditMode] = useState(false);
 
-  useEffect(() => {
-    getData();
-    async function getData() {
-      const response = await axios.get<Activity[]>(
-        `http://localhost:5280/api/activities`
-      );
-      const data = await response.data;
-      setActivities(data);
-    }
-  }, []);
-
+  const { activities, isPending } = useActivities();
 
   const handleSelectActivity = (id: string) => {
-    setSelectedActivity(activities.find(x => x.id === id));
+    setSelectedActivity(activities!.find(x => x.id === id));
   }
 
   const handleCancelSelectActivity = () => {
@@ -36,32 +25,27 @@ function App() {
     setEditMode(true);
   }
 
-
   const handleFormClose = () => {
     setEditMode(false);
   }
 
-  const handleSubmitForm = (activity: Activity) => {
-    if (activity.id) {
-      setActivities(activities.map(x => x.id === activity.id ? activity : x))
-    } else {
-      const newActivity = {...activity, id: activities.length.toString()}
-      setSelectedActivity(newActivity);
-      setActivities([...activities, newActivity])
-    }
-    setEditMode(false);
-  }
+  // const handleSubmitForm = (activity: Activity) => {
+  //   console.log(activity);
+  //   setEditMode(false);
+  // }
 
-  const handleDelete = (id: string) => {
-    setActivities(activities.filter(x => x.id !== id))
-  }
+  // const handleDelete = (id: string) => {
+  //   console.log(id);
+  // }
 
-// const title = "Welcome to Reactivities!"
 return (
     <Box sx={{bgcolor: '#eeeeee'}}>
       <CssBaseline />
       <NavBar openForm={handleOpenForm} />
       <Container maxWidth='xl' sx={{mt: 3}}>
+        {!activities || isPending ? (
+          <Typography>Loading...</Typography>
+        ) : (
         <ActivityDashboard 
           activities={activities}  
           selectActivity={handleSelectActivity}
@@ -70,9 +54,10 @@ return (
           editMode={editMode}
           openForm={handleOpenForm}
           closeForm={handleFormClose}
-          submitForm={handleSubmitForm}
-          deleteActivity={handleDelete}
+          // submitForm={handleSubmitForm}
+          // deleteActivity={handleDelete}
         />
+        )}
       </Container>
     </Box>
   )
