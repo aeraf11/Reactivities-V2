@@ -1,20 +1,27 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import agent from "../api/agent";
-// import axios from "axios";
 
-export const useActivities = () => {
-
+export const useActivities = (id?: string) => {
     const queryClient = useQueryClient();
 
-    const {data: activities, isPending } = useQuery({
+    const { data: activities, isPending } = useQuery({
         queryKey: ['activities'],
         queryFn: async () => {
-          const response = await agent.get<Activity[]>(`/activities`);
-          return response.data;
+            const response = await agent.get<Activity[]>('/activities');
+            return response.data;
         }
-      });
+    });
 
-      const updateActivity = useMutation({
+    const {data: activity, isLoading: isLoadingActivity} = useQuery({
+        queryKey: ['activities', id],
+        queryFn: async () => {
+            const response = await agent.get<Activity>(`/activities/${id}`);
+            return response.data;
+        },
+        enabled: !!id
+    })
+
+    const updateActivity = useMutation({
         mutationFn: async (activity: Activity) => {
             await agent.put('/activities', activity)
         },
@@ -23,21 +30,21 @@ export const useActivities = () => {
                 queryKey: ['activities']
             })
         }
-      })
+    })
 
-      const createActivity = useMutation({
+    const createActivity = useMutation({
         mutationFn: async (activity: Activity) => {
-            await agent.post('/activities', activity)
+            const response = await agent.post('/activities', activity);
+            return response.data;
         },
         onSuccess: async () => {
             await queryClient.invalidateQueries({
                 queryKey: ['activities']
             })
         }
-      })
+    });
 
-
-      const deleteActivity = useMutation({
+    const deleteActivity = useMutation({
         mutationFn: async (id: string) => {
             await agent.delete(`/activities/${id}`)
         },
@@ -46,14 +53,16 @@ export const useActivities = () => {
                 queryKey: ['activities']
             })
         }
-      })
+    });
 
-      return {
+    return {
         activities,
         isPending,
         updateActivity,
         createActivity,
-        deleteActivity
-      }
+        deleteActivity,
+        activity,
+        isLoadingActivity
+    }
 
-} 
+}

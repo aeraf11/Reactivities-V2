@@ -1,4 +1,4 @@
-type  Activity = {
+type Activity = {
     id: string
     title: string
     date: string
@@ -9,8 +9,4 @@ type  Activity = {
     venue: string
     latitude: number
     longitude: number
-  }
-
-
-
-  
+}
